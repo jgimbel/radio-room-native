@@ -32,10 +32,10 @@ class Home extends Component {
           </Text>
           <ScrollView>
           {
-            this.props.rooms.sort((a, b) => a._id.localeCompare(b._id)).map((room) => (
+            this.props.rooms.map((room) => (
               <Link
                 key={room._id}
-                to={`room/${room.alias}`}
+                to={`room/${room._id}`}
               >
                 <Text style={styles.link}>
                   {room.alias}

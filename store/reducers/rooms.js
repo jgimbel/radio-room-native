@@ -4,7 +4,7 @@ const reducer = (state={rooms:[], active: ''}, {type, ...payload}) => {
     case 'NEW_ROOMS':
       return {
         ...state,
-        rooms: state.rooms.concat(payload.rooms.filter(room => !state.rooms.find(r => r._id === room._id)))
+        rooms: state.rooms.concat(payload.rooms.filter(room => !state.rooms.find(r => r._id === room._id))).sort((a, b) => b._id.localeCompare(a._id))
       }
     default: 
       return state

@@ -15,9 +15,16 @@ class Rooms extends Component {
 
   componentDidMount() {
     API.rooms.join(this.props.room)
+    API.songs.onAdd(this.handleSongAdd)
   }
 
-  componentDidUnmount() {
+  handleSongAdd = ({song}) => {
+    console.log({song})
+    API.rooms.pulse().then(console.log)
+    this.props.dispatch({type: 'SONG_ADD', room: this.props.room, song})
+  }
+  
+  componentWillUnmount() {
     API.rooms.leave(this.props.room)
   }
 
@@ -34,8 +41,8 @@ class Rooms extends Component {
         </View>
         <View style={styles.navContainer}>
           <View style={styles.nav}>
-            <Link underlayColor='#FFF' to='/room/:room/queue' style={styles.navItem}><Text>Queue</Text></Link>
-            <Link underlayColor='#FFF' to='/room/:room/add' style={styles.navItem}><Text>Search</Text></Link>
+            <Link underlayColor='#FFF' to={`/room/${room}/queue`} style={styles.navItem}><Text>Queue</Text></Link>
+            <Link underlayColor='#FFF' to={`/room/${room}/add`} style={styles.navItem}><Text>Search</Text></Link>
           </View>
         </View>
       </View>
@@ -43,9 +50,9 @@ class Rooms extends Component {
   }
 }
 
-export default connect(({rooms}, {match: {params: {room}}}) => ({
-  room: rooms.rooms.find(r=> r.alias === room)
-}))(Rooms)
+export default connect(({rooms: {rooms}}, {match: {params: {room}}}) => ({
+  room: rooms.find(r=> r._id === room)
+}), (dispatch) => ({dispatch}))(Rooms)
 
 const styles = StyleSheet.create({
   main: {

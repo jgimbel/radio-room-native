@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { View, TextInput, ScrollView, TouchableHighlight, StyleSheet, Text } from 'react-native';
+import React, { Component } from 'react'
+import { View, TextInput, ScrollView, TouchableHighlight, StyleSheet, Text } from 'react-native'
 import API from '../../API'
 class AddSong extends Component {
   state = { 
@@ -33,7 +33,7 @@ class AddSong extends Component {
           ))}
         </ScrollView>
       </View>
-    );
+    )
   }
 }
 
@@ -43,4 +43,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default AddSong;
+export default AddSong

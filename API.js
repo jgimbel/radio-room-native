@@ -8,6 +8,10 @@ function callAPI(path, opts={method: 'GET'}) {
     .then(res => res.json())
 }
 
+function emit(key, data) {
+  return new Promise((resolve, reject) => socket.emit(key, data, resolve))
+}
+
 export const socket = SocketIOClient(`${baseURL}/`)
 
 const listen_channels = ['join', 'disconnect', 'leave', 'pulse', 'song_started', 'queue_updated']
@@ -29,9 +33,7 @@ export default {
       return callAPI(`/songs/search?title=${encodeURIComponent(text)}`)
     },
     add(song) {
-      return new Promise((resolve, reject) => {
-        socket.emit('add_song_to_room', {url: `https://youtube.com/watch?v=${song.id.videoId}`}, resolve)
-      })
+      emit('add_song_to_room', {url: `https://youtube.com/watch?v=${song.id.videoId}`})
     },
     onAdd(func) {
       listeners['song_started'].push(func)
@@ -49,33 +51,31 @@ export default {
     getRoom(id) {
       return callAPI(`/rooms/${id}`)
     },
-    addRoom() {
+    addRoom(name = '' + Date.now()) {
       return callAPI(`/rooms`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json'
         },
         body: JSON.stringify({
-          name: '' + Date.now()
+          name
         })
       })
     },
     pulse() {
-      socket.emit('pulse')
+      return emit('pulse')
     },
     onPulse(func) {
       listeners.pulse.push(func)
     },
     join(room) {
-      return new Promise((resolve, reject) => {
-        socket.emit('join', {room_id: room._id}, resolve)        
-      })
+      return emit('join', {room_id: room._id})
     },
     onJoin(func) {
       listeners.join.push(func)
     },
     leave(id) { // ?
-      socket.emit('leave', {room_id: room._id})
+      return emit('leave', {room_id: room._id})
     },
     onLeave(func) {
       listeners.leave.push(func)
