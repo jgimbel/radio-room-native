@@ -27,7 +27,7 @@ class AddSong extends Component {
         <TextInput placeholder='Search' value={this.state.text} onChangeText={this.handleTextChange} />
         <ScrollView>
           {this.state.songs.map((song) => (
-            <TouchableHighlight onPress={() => this.addSong(song)} key={song.id.videoId}>
+            <TouchableHighlight style={styles.btn} onPress={() => this.addSong(song)} key={song.id.videoId}>
               <Text>{song.snippet.title}</Text>
             </TouchableHighlight>
           ))}
@@ -40,6 +40,15 @@ class AddSong extends Component {
 const styles = StyleSheet.create({
   main: {
     width: '100%'
+  },
+  btn: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    marginTop: 5,
+    marginBottom: 5,
+    borderColor: '#aaa',
+    borderWidth: 1,
+    borderRadius: 2
   }
 })
 

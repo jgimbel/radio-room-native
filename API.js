@@ -14,7 +14,7 @@ function emit(key, data) {
 
 export const socket = SocketIOClient(`${baseURL}/`)
 
-const listen_channels = ['join', 'disconnect', 'leave', 'pulse', 'song_started', 'queue_updated']
+const listen_channels = ['join', 'disconnect', 'leave', 'pulse', 'song_started', 'queue_updated', 'history_updated']
 
 const listeners = listen_channels.reduce((o, k) => ({...o, [k]: []}), {})
 
@@ -33,12 +33,16 @@ export default {
       return callAPI(`/songs/search?title=${encodeURIComponent(text)}`)
     },
     add(song) {
-      emit('add_song_to_room', {url: `https://youtube.com/watch?v=${song.id.videoId}`})
+      return emit('add_song_to_room', {url: `https://youtube.com/watch?v=${song.id.videoId}`})
     },
     onAdd(func) {
       listeners['song_started'].push(func)
-      //deal with it later...
+    },
+    onQueueUpdate(func) {
       listeners['queue_updated'].push(func)
+    },
+    onHistoryUpdate(func) {
+      listeners['history_updated'].push(func)
     },
     vote(type, song) {
       socket.emit('vote', {type: vote, id: song._id})
@@ -74,7 +78,7 @@ export default {
     onJoin(func) {
       listeners.join.push(func)
     },
-    leave(id) { // ?
+    leave(room) { // ?
       return emit('leave', {room_id: room._id})
     },
     onLeave(func) {

@@ -35,7 +35,7 @@ class Home extends Component {
             this.props.rooms.map((room) => (
               <Link
                 key={room._id}
-                to={`room/${room._id}`}
+                to={`room/${room._id}/queue`}
               >
                 <Text style={styles.link}>
                   {room.alias}
