@@ -1,72 +1,19 @@
 import React, { Component } from 'react'
 import { View, ScrollView, Text, Image, StyleSheet } from 'react-native'
 import {connect} from 'react-redux'
+import Playlist from './playlist'
 
 class Queue extends Component {
   state = {  }
   render() {
     const room = this.props.room
-    console.log(this.props.room)
+    console.log(room)
     if(!room) return <View />
     return (
       <View>
-          <Text style={styles.separator}>
-            Next Up
-          </Text>
-        <ScrollView style={styles.playlist} horizontal>
-          {
-            room.queue.map((song, idx) => (
-              <View key={idx} style={styles.historyItem}>
-                <Image
-                  style={{flex:1, height: undefined, width: undefined, alignSelf: 'stretch'}}
-                  resizeMode="contain"
-                  source={{uri: song.json.thumbnail}}
-                />
-                <Text>{song.json.title}</Text>
-              </View>
-            ))
-          }
-        </ScrollView>
-          <Text style={styles.separator}>
-            Now Playing
-          </Text>
-          {
-            room.current
-              ? (
-                <View style={styles.playlist}>
-                  <View style={styles.historyItem}>
-                    <Image
-                      style={{flex:1, height: undefined, width: undefined, alignSelf: 'stretch'}}
-                      resizeMode="contain"
-                      source={{uri: room.current.json.thumbnail}}
-                    />
-                    <Text>{room.current.json.title}</Text>
-                  </View>
-                </View>
-              )
-              : (
-                <Text style={styles.noSong}>No Song Playing</Text>
-              )
-          }
-
-          <Text style={styles.separator}>
-            History
-          </Text>
-
-        <ScrollView style={styles.playlist} horizontal>
-          {
-            reverse(room.history).map((song, idx) => (
-              <View key={idx} style={styles.historyItem}>
-                <Image 
-                  style={{flex:1, height: undefined, width: undefined, alignSelf: 'stretch'}}
-                  resizeMode="contain"
-                  source={{uri: song.thumbnail}}
-                />
-                <Text>{song.title}</Text>
-              </View>
-            ))
-          }
-        </ScrollView>
+        <Playlist header='Up Next' songs={room.queue || []} />
+        <Playlist header='Now Playing' songs={room.current ? [room.current] : []} />
+        <Playlist header='History' songs={room.history || []} />
       </View>
     )
   }
@@ -78,7 +25,7 @@ function reverse(arr) {
 
 const styles = StyleSheet.create({
   playlist: {
-    height: '28%',
+    height: '27%',
     width: '100%'
   },
   historyItem : {
@@ -96,11 +43,19 @@ const styles = StyleSheet.create({
 
   },
   separator: {
-    fontSize: 24
+    fontSize: 24,
+    textAlign: 'center'
   },
   noSong: {
+    height: '27%',
     fontSize: 36,
-    color: '#000'
+    color: '#000',
+    textAlign: 'center'
+  },
+  load: {
+    position: 'relative',
+    top: '50%',
+    right: '50%'
   }
 })
 

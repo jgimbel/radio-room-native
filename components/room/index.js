@@ -3,31 +3,82 @@ import SocketIOClient from 'socket.io-client'
 import { View, Text, Button, StyleSheet } from 'react-native'
 import {Route, Link, Redirect} from 'react-router-native'
 import {connect} from 'react-redux'
-import API from '../../API'
+import API, {socket} from '../../API'
 import Queue from './queue'
 import AddSong from './add'
 
-class Rooms extends Component {
+import Sound from 'react-native-sound';
+Sound.setCategory('Playback', true)
 
-  constructor(props) {
-    super(props)
+const EXTENSIONS = ['aac', 'aiff', 'mp3', 'wav', 'm4a']
+
+class Rooms extends Component {
+  state = {
+    disconnect: false,
+    songLoading: true
   }
 
   componentDidMount() {
-    API.rooms.getRoom(this.props.room.alias).then((room) => {
-      this.props.dispatch({
-        type: 'ROOM_UPDATE',
-        room
-      })
+    this.updateRoom()
+    socket.on('disconnect', () => this.setState({disconnected: true}))
+    socket.on('connect', () => {
+      this.setState({disconnected: false})
+      this.updateRoom()
     })
     API.rooms.join(this.props.room)
     API.songs.onAdd(this.handleSongAdd)
     API.songs.onQueueUpdate(this.handleQueueUpdate)
     API.songs.onHistoryUpdate(this.handleHistoryUpdate)
+    API.rooms.onPulse(this.handlePulse)
+  }
+
+  updateRoom() {
+    API.rooms.getRoom(this.props.room.alias).then((room) => {
+      this.props.dispatch({
+        type: 'ROOM_UPDATE',
+        room
+      })
+      if(room.current) {
+        this.play(room.current)
+      }
+    })
+  }
+
+  play = (song, index = 0) => {
+    if(!this.props.room.current) return
+    this.player && this.player.stop().release()
+
+
+    const sources = this.props.room.current.json.formats
+    .filter(f => EXTENSIONS.includes(f.ext))
+    .sort((a, b) => a.filesize - b.filesize)
+
+    if(index >= sources.length) {
+      console.log('no source found')
+      return
+    }
+    const source = sources[index]
+    this.setState({songLoading: true})
+    this.player = new Sound(source.url, undefined, (err, sound) => {
+      clearTimeout(this.timer)
+      API.rooms.pulse().then(({currentTime}) => {
+        this.player.play()
+        this.player.setCurrentTime((currentTime)/1000)
+        this.setState({songLoading: false})
+      })
+    })
+    this.timer = setTimeout(() => {
+      this.play(song, index+1)
+    }, 2500)
+
+  }
+
+  handlePulse = (res) => {
+    this.player.setCurrentTime(res)
   }
 
   handleRoomUpdate(update) {
-    API.rooms.pulse().then(console.log)
+    API.rooms.pulse().then()
     this.props.dispatch({
       type: 'SONG_ADD',
       room: this.props.room,
@@ -36,40 +87,41 @@ class Rooms extends Component {
   }
   handleSongAdd = ({song}) => {
     this.handleRoomUpdate({song})
+    this.play(song)
   }
   handleHistoryUpdate = ({history}) => {
     this.handleRoomUpdate({history})
   }
   handleQueueUpdate = ({queue}) => {
     this.handleRoomUpdate({queue})
-  } 
+  }
 
   componentWillUnmount() {
     API.rooms.leave(this.props.room)
-
+    this.player && this.player.stop().release()
     // API.rooms.removeJoin(this.props.room)
     // API.songs.removeOnAdd(this.handleSongAdd)
   }
 
   render() {
     const {room} = this.props.match.params
-    console.log(this.props.location.pathname)
+    const {pathname} = this.props.location
     if(!room) {
       return <Redirect push={false} to={`/`} />
     }
-    if(this.props.location.pathname == `/room/${room}`) {
+    if(pathname == `/room/${room}`) {
       return <Redirect push={false} to={`/room/${room}/queue`} />
     }
     return (
       <View style={styles.main}>
         <View style={styles.body}>
-          <Route path='/room/:room/queue' component={Queue} />
+          <Route path='/room/:room/queue' render={(props) => <Queue {...props} loading={this.state.songLoading}/>} />
           <Route path='/room/:room/add' component={AddSong} />
         </View>
         <View style={styles.navContainer}>
           <View style={styles.nav}>
-            <Link replace underlayColor='rgba(255,255,255,0)' to={`/room/${room}/queue`} style={styles.navItem}><Text>Queue</Text></Link>
-            <Link replace underlayColor='rgba(255,255,255,0)' to={`/room/${room}/add`} style={styles.navItem}><Text>Search</Text></Link>
+            <Link replace underlayColor='rgba(255,255,255,0)' to={`/room/${room}/queue`} style={[styles.navItem, pathname.includes('queue') && styles.activeNav]}><Text>Queue</Text></Link>
+            <Link replace underlayColor='rgba(255,255,255,0)' to={`/room/${room}/add`} style={[styles.navItem, pathname.includes('add') && styles.activeNav]}><Text>Search</Text></Link>
           </View>
         </View>
       </View>
@@ -100,7 +152,14 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   navItem: {
+    flex: 1,
+    alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 20
+    paddingBottom: 20,
+    width: '50%',
+  },
+  activeNav: {
+    backgroundColor: 'lightblue',
+    color: 'white'
   }
 })

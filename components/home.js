@@ -36,9 +36,10 @@ class Home extends Component {
               <Link
                 key={room._id}
                 to={`room/${room._id}/queue`}
+                style={styles.link}
               >
-                <Text style={styles.link}>
-                  {room.alias}
+                <Text style={styles.name}>
+                  {room.name}
                 </Text>
               </Link>
             ))
@@ -60,7 +61,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
     textAlign: 'center',
     margin: 10,
   },
@@ -71,14 +73,20 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   link: {
-    textAlign: 'center',
-    color: '#FFF',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#0000FF',
     marginTop: 2,
     marginBottom: 2,
     paddingTop: 5,
     paddingBottom: 5,
-    padding: 5,
-    borderRadius: 3
+    padding: 10,
+    borderRadius: 3,
+    height: 40
   },
+  name: {
+    color: '#FFF',
+    textAlign: 'center',
+  }
 });
